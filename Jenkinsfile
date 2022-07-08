@@ -10,7 +10,7 @@ pipeline {
   stages {
     stage('Cloning Git') {
       steps {
-        git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'main', credentialsId: "mw_git"
+        git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "some_randome"
       }
     }
     stage('Building image') {
