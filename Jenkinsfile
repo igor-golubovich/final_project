@@ -6,7 +6,7 @@ pipeline {
     registry = "jfrog.it-academy.by/public/"
     registryCredential = 'jfrog'
   }
-  agent any
+  agent {label 'master'}
   stages {
     stage('Cloning Git') {
       steps {
