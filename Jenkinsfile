@@ -41,18 +41,12 @@ pipeline {
             } catch (Exception err) {
               stagestatus.Docker_PUSH = "Failure"
               error "Image pushing is error"
-              
+              slackSend channel: '#igoz_notification_channel', 
+                          message: 'Image pushing is error'
               }
           }
         }
       }
-      steps {
-        when { 
-          expression { stagestatus.find{ it.key == "Docker_PUSH" }?.value == "Failure" }
-         } 
-                slackSend channel: '#igoz_notification_channel', 
-                          message: 'Image pushing is error'
-        }
     }
 
     stage('Remove unused docker images') {
@@ -115,7 +109,7 @@ stage("Deploy or Upgrade") {
         }
       }
     }
-    stage("Rollback") {
+stage("Rollback") {
       when { 
           expression { stagestatus.find{ it.key == "Upgrade" }?.value == "Failure" }
       }
