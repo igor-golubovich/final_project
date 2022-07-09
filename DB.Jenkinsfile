@@ -59,8 +59,8 @@ stage("Deploy or Upgrade DB") {
               }
               else {
                 sh "kubectl scale --replicas=0 deployment/wordpress-mysql --namespace default --kubeconfig=$ckube"
-                sh "kubectl delete -l name=wp-pv-claim -f deploy/mysql.yaml --namespace default --kubeconfig=$ckube"
-                sh "kubectl apply -l name=wp-pv-claim -f deploy/mysql.yaml --namespace default --kubeconfig=$ckube"
+                sh "kubectl delete -l name=mysql-pv-claim -f deploy/mysql.yaml --namespace default --kubeconfig=$ckube"
+                sh "kubectl apply -l name=mysql-pv-claim -f deploy/mysql.yaml --namespace default --kubeconfig=$ckube"
                 sh "kubectl set image deployment/wordpress-mysql wordpress-mysql=$image_bd --namespace default --kubeconfig=$ckube"
                 sh "kubectl scale --replicas=1 deployment/wordpress-mysql --namespace default --kubeconfig=$ckube"
                 stagestatus.Upgrade = "Success"
