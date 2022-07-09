@@ -128,7 +128,7 @@ stage("Deploy or Upgrade") {
     }
 stage('Slack deploy error'){
       when { 
-        any {
+        anyof {
           expression { stagestatus.find{ it.key == "Deploy" }?.value == "Failure" }
           expression { stagestatus.find{ it.key == "Upgrade" }?.value == "Failure" }
         } 
