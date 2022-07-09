@@ -28,7 +28,7 @@ pipeline {
                 sh """
                 echo "\$(date) " ${env.JOB_NAME} [${env.BUILD_NUMBER}] >> kubeval.log
                 kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ deploy/mysql.yaml >> kubeval.log
-                echo -e ".\n.\n" >> kubeval.log
+                echo "\n" >> kubeval.log
                 """
                 archiveArtifacts artifacts: 'kubeval.log'
                 stagestatus.Kubeval = "Success"
