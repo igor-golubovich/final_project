@@ -12,7 +12,7 @@ pipeline {
      stage('Slack start pipeline'){
         steps {
             slackSend channel: '#igoz_notification_channel', 
-                      message: 'Start Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})',
+                      message: "Start Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
                       color: '#F0FFFF'
             }
         }
