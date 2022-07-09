@@ -21,11 +21,11 @@ pipeline {
         script {
           try {
           git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "git_project_token"
-          sleep 20
+          sleep 15
           timeout(3) {
                 waitUntil {
                   script {
-                    def status = sh(returnStdout: true, script: "kubectl get pods --namespace default --selector=tier=mysql --no-headers -o custom-columns=':status.phase'")
+                    def status = sh(returnStdout: true, script: "kubectl get pods --kubeconfig=$ckube --namespace default --selector=tier=mysql --no-headers -o custom-columns=':status.phase'")
                     if ( status =~ "Running") { return true }
                     else { return false }
                   }
