@@ -40,15 +40,23 @@ pipeline {
               stagestatus.Docker_PUSH = "Success"
             } catch (Exception err) {
               stagestatus.Docker_PUSH = "Failure"
-              error "Image pushing is error"
-              slackSend channel: '#igoz_notification_channel', 
-                          message: 'Image pushing is error'
+              error "Image pushing is error"              
               }
           }
         }
       }
     }
 
+    stage('Slack it'){
+      when { 
+          expression { stagestatus.find{ it.key == "Docker_PUSH" }?.value == "Failure" }
+      }
+            steps {
+                slackSend channel: '#igoz_notification_channel', 
+                          message: 'Image pushing is error'
+            }
+        }
+    
     stage('Remove unused docker images') {
       steps{
         sh "docker rmi $image_mw:$BUILD_NUMBER"
