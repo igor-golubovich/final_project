@@ -77,7 +77,11 @@ pipeline {
           script {
             catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
               try {
-                sh 'kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ deploy/wordpress.yaml >> kubeval.log'
+                sh """
+                echo "\$(date) " ${env.JOB_NAME} [${env.BUILD_NUMBER}] >> kubeval.log
+                kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ deploy/wordpress.yaml >> kubeval.log'
+                echo "\n" >> kubeval.log
+                """
                 archiveArtifacts artifacts: 'kubeval.log'
                 stagestatus.Kubeval = "Success"
               sleep 10
