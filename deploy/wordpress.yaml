@@ -71,7 +71,7 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Recycle
   nfs:
-    path: /mnt/IT-Academy/nfs-data/sa2-20-22/Igor_Golubovich/project
+    path: /mnt/IT-Academy/nfs-data/sa2-20-22/Igor_Golubovich/project/app
     server: 192.168.37.105
 ---
 apiVersion: v1
