@@ -42,7 +42,7 @@ pipeline {
         script {
           catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
             try {
-              docker.withRegistry( 'https://jfrog.it-academy.by/', registryCredential ) {
+              docker.withRegistry( 'https://jfrog.it-academy.by/public/', registryCredential ) {
               dockerImage.push("${env.BUILD_ID}")
               }
               stagestatus.Docker_PUSH = "Success"
