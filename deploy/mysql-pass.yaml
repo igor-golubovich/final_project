@@ -5,4 +5,4 @@ metadata:
   name: mysql-pass
 type: Opaque
 data:
-  key: cGFzc3dvcmQK
+  password: cGFzc3dvcmQK

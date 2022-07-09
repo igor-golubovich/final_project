@@ -111,11 +111,3 @@ spec:
                 name: wordpress
                 port:
                   number: 80
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mysql-pass
-type: Opaque
-data:
-  key: cGFzc3dvcmQK
