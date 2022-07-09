@@ -18,11 +18,33 @@ pipeline {
         }
     stage('Cloning Git') {
       steps {
-        git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "git_project_token"
-      }
-    }
+        script {
+          try {
+          git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "git_project_token"
+          sleep 20
+          timeout(3) {
+                waitUntil {
+                  script {
+                    def status = sh(returnStdout: true, script: "kubectl get pods --namespace default --selector=tier=mysql --no-headers -o custom-columns=':status.phase'")
+                    if ( status =~ "Running") { return true }
+                    else { return false }
+                  }
+                }
+              }
+              stagestatus.Deploy_DB = "Success"
+          }  catch (Exception err) {
+                stagestatus.Deploy_DB = "Failure"
+                error "Deploy or Upgrade BD failed"
+              }
+           }
+        
+         }
+       }
     
     stage('Building image') {
+      when { 
+          expression { stagestatus.find{ it.key == "Deploy_DB" }?.value == "Success" }
+      }
       steps {
         script {
           try {
@@ -38,6 +60,9 @@ pipeline {
     }
 
     stage("Push image") {
+      when { 
+          expression { stagestatus.find{ it.key == "Docker_BUILD" }?.value == "Success" }
+      }
       steps {
         script {
           catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -84,17 +109,6 @@ pipeline {
                 """
                 archiveArtifacts artifacts: 'kubeval.log'
                 stagestatus.Kubeval = "Success"
-              sleep 10
-              timeout(3) {
-                waitUntil {
-                  script {
-                    def status = sh(returnStdout: true, script: "kubectl get pods --namespace default --selector=tier=mysql --no-headers -o custom-columns=':status.phase'")
-                    if ( status =~ "Running") { return true }
-                    else { return false }
-                  }
-                }
-              }
-              stagestatus.Deploy_DB = "Success"
               } catch (Exception err) {
                 stagestatus.Kubeval = "Failure"
                 error "manifest syntax is incorrect"
@@ -111,7 +125,6 @@ stage("Deploy or Upgrade") {
         allOf {
           expression { stagestatus.find{ it.key == "Docker_PUSH" }?.value == "Success" }
           expression { stagestatus.find{ it.key == "Kubeval" }?.value == "Success" }
-          expression { stagestatus.find{ it.key == "Deploy_DB" }?.value == "Success" }
         }
       }   
       steps {

@@ -20,7 +20,7 @@ pipeline {
       }
     }
     
-    stage('Kubeval tests') {    
+    stage('Kubeval DB tests') {    
         steps {
           script {
             catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
