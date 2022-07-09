@@ -77,9 +77,20 @@ pipeline {
           script {
             catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
               try {
-                sh 'kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ deploy/wordpress.yaml > kubeval.log'
+                sh 'kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ deploy/wordpress.yaml >> kubeval.log'
                 archiveArtifacts artifacts: 'kubeval.log'
                 stagestatus.Kubeval = "Success"
+              sleep 10
+              timeout(3) {
+                waitUntil {
+                  script {
+                    def status = sh(returnStdout: true, script: "kubectl get pods --namespace default --selector=tier=mysql --no-headers -o custom-columns=':status.phase'")
+                    if ( status =~ "Running") { return true }
+                    else { return false }
+                  }
+                }
+              }
+              stagestatus.Deploy_DB = "Success"
               } catch (Exception err) {
                 stagestatus.Kubeval = "Failure"
                 error "manifest syntax is incorrect"
@@ -96,6 +107,7 @@ stage("Deploy or Upgrade") {
         allOf {
           expression { stagestatus.find{ it.key == "Docker_PUSH" }?.value == "Success" }
           expression { stagestatus.find{ it.key == "Kubeval" }?.value == "Success" }
+          expression { stagestatus.find{ it.key == "Deploy_DB" }?.value == "Success" }
         }
       }   
       steps {
@@ -109,18 +121,18 @@ stage("Deploy or Upgrade") {
                   """
               }
               else {
-                sh "kubectl scale --replicas=0 deploy/wordpress --namespace default --kubeconfig=$ckube"
+                sh "kubectl scale --replicas=0 deployment/wordpress --namespace default --kubeconfig=$ckube"
                 sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
                 sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
-                sh "kubectl set image deploy/wordpress wordpress=$registry$image_mw:${env.BUILD_ID} --namespace default --kubeconfig=$ckube"
-                sh "kubectl scale --replicas=1 deploy/wordpress --namespace default --kubeconfig=$ckube"
+                sh "kubectl set image deployment/wordpress wordpress=$registry$image_mw:${env.BUILD_ID} --namespace default --kubeconfig=$ckube"
+                sh "kubectl scale --replicas=1 deployment/wordpress --namespace default --kubeconfig=$ckube"
                 stagestatus.Upgrade = "Success"
               }
               stagestatus.Deploy = "Success"
             } catch (Exception err) {
                 stagestatus.Deploy = "Failure"
                 stagestatus.Upgrade = "Failure"
-                error "Deployment or Upgrade are failed"
+                error "Deployment or Upgrade failed"
               }
           }
         }
@@ -146,11 +158,11 @@ stage("Rollback") {
       }
       steps {
         script {
-          sh "kubectl scale --replicas=0 deploy/wordpress --namespace default --kubeconfig=$ckube"
+          sh "kubectl scale --replicas=0 deployment/wordpress --namespace default --kubeconfig=$ckube"
           sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
           sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
-          sh "kubectl rollout undo deploy/wordpress --namespace default --kubeconfig=$ckube"
-          sh "kubectl scale --replicas=1 deploy/wordpress --namespace default --kubeconfig=$ckube"
+          sh "kubectl rollout undo deployment/wordpress --namespace default --kubeconfig=$ckube"
+          sh "kubectl scale --replicas=1 deployment/wordpress --namespace default --kubeconfig=$ckube"
         }
       }
     }

@@ -32,10 +32,16 @@ spec:
         tier: mysql
     spec:
       containers:
-      - image: mysql:5.7
+      - image: image_variable
         name: mysql
         env:
-        - name: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: '1'
+        - name: MYSQL_USER
+          value: admin 
+        - name: MYSQL_DATABASE
+          value: wordpress      
+        - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-pass
