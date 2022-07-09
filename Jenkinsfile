@@ -12,7 +12,7 @@ pipeline {
      stage('Slack start pipeline'){
         steps {
             slackSend channel: '#igoz_notification_channel', 
-                      message: "Start Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
+                      message: "START Pipeline '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
                       color: '#F0FFFF'
             }
         }
@@ -61,7 +61,7 @@ pipeline {
       }
             steps {
                 slackSend channel: '#igoz_notification_channel', 
-                          message: 'Image pushing error',
+                          message: 'Image pushing ERROR',
                           color: '#FF0000'
             }
         }
@@ -126,6 +126,20 @@ stage("Deploy or Upgrade") {
         }
       }
     }
+stage('Slack deploy error'){
+      when { 
+        any {
+          expression { stagestatus.find{ it.key == "Deploy" }?.value == "Failure" }
+          expression { stagestatus.find{ it.key == "Upgrade" }?.value == "Failure" }
+        } 
+      }
+            steps {
+                slackSend channel: '#igoz_notification_channel', 
+                          message: 'Deploy or Upgrade ERROR',
+                          color: '#FF0000'
+            }
+        }
+
 stage("Rollback") {
       when { 
           expression { stagestatus.find{ it.key == "Upgrade" }?.value == "Failure" }
@@ -144,10 +158,10 @@ stage("Rollback") {
 
  post {
     success {
-        slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        slackSend (color: '#00FF00', message: "SUCCESSFUL: Pipeline '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
     failure {
-        slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        slackSend (color: '#FF0000', message: "FAILED: Pipeline '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
   }
 
