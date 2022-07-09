@@ -4,13 +4,14 @@ pipeline {
   environment {
     image_mw = "i_golubovich/wp"
     registry = "jfrog.it-academy.by/public/"
-    registryCredential = 'jfrog'
+    registryCredential = 'jf'
+    ckube = "/var/ckube/config"
   }
   agent {label 'master'}
   stages {
     stage('Cloning Git') {
       steps {
-        git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "some_randome"
+        git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "git_project_token"
       }
     }
     stage('Building image') {
@@ -82,18 +83,18 @@ stage("Deploy or Upgrade") {
         script {
           catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
             try {
-              if (sh(returnStdout: true, script: 'kubectl get deployment wordpress --ignore-not-found --namespace default') == '') {
+              if (sh(returnStdout: true, script: 'kubectl get deployment wordpress --ignore-not-found --namespace default --kubeconfig=$ckube') == '') {
                 sh """
                     sed -i "s|image_variable|$registry$image_mw:${env.BUILD_ID}|g" deploy/wordpress.yaml
-                    kubectl apply -f deploy/wordpress.yaml --namespace=default
+                    kubectl apply -f deploy/wordpress.yaml --namespace=default --kubeconfig=$ckube
                   """
               }
               else {
-                sh "kubectl scale --replicas=0 deploy/wordpress --namespace default"
-                sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default"
-                sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default"
-                sh "kubectl set image deploy/wordpress wordpress=$registry$image_mw:${env.BUILD_ID} --namespace default"
-                sh "kubectl scale --replicas=1 deploy/wordpress --namespace default"
+                sh "kubectl scale --replicas=0 deploy/wordpress --namespace default --kubeconfig=$ckube"
+                sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
+                sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
+                sh "kubectl set image deploy/wordpress wordpress=$registry$image_mw:${env.BUILD_ID} --namespace default --kubeconfig=$ckube"
+                sh "kubectl scale --replicas=1 deploy/wordpress --namespace default --kubeconfig=$ckube"
                 stagestatus.Upgrade = "Success"
               }
               stagestatus.Deploy = "Success"
@@ -112,11 +113,11 @@ stage("Deploy or Upgrade") {
       }
       steps {
         script {
-          sh "kubectl scale --replicas=0 deploy/wordpress --namespace default"
-          sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default"
-          sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default"
-          sh "kubectl rollout undo deploy/wordpress --namespace default"
-          sh "kubectl scale --replicas=1 deploy/wordpress --namespace default"
+          sh "kubectl scale --replicas=0 deploy/wordpress --namespace default --kubeconfig=$ckube"
+          sh "kubectl delete -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
+          sh "kubectl apply -l name=wp-pv-claim -f deploy/wordpress.yaml --namespace default --kubeconfig=$ckube"
+          sh "kubectl rollout undo deploy/wordpress --namespace default --kubeconfig=$ckube"
+          sh "kubectl scale --replicas=1 deploy/wordpress --namespace default --kubeconfig=$ckube"
         }
       }
     }
