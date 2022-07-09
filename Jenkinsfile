@@ -9,11 +9,19 @@ pipeline {
   }
   agent {label 'master'}
   stages {
+     stage('Slack start pipeline'){
+        steps {
+            slackSend channel: '#igoz_notification_channel', 
+                      message: 'Start Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})',
+                      color: '#F0FFFF'
+            }
+        }
     stage('Cloning Git') {
       steps {
         git url: 'https://github.com/igor-golubovich/final_project.git', branch: 'master', credentialsId: "git_project_token"
       }
     }
+    
     stage('Building image') {
       steps {
         script {
@@ -40,20 +48,21 @@ pipeline {
               stagestatus.Docker_PUSH = "Success"
             } catch (Exception err) {
               stagestatus.Docker_PUSH = "Failure"
-              error "Image pushing is error"              
+              error "Image pushing error"              
               }
           }
         }
       }
     }
 
-    stage('Slack it'){
+    stage('Slack pushing error'){
       when { 
           expression { stagestatus.find{ it.key == "Docker_PUSH" }?.value == "Failure" }
       }
             steps {
                 slackSend channel: '#igoz_notification_channel', 
-                          message: 'Image pushing is error'
+                          message: 'Image pushing error',
+                          color: '#FF0000'
             }
         }
     
