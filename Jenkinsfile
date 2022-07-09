@@ -26,7 +26,7 @@ pipeline {
       steps {
         script {
           try {
-            dockerImage = docker.build image_mw + ":$BUILD_NUMBER" , "."
+            dockerImage = docker.build registry + image_mw + ":$BUILD_NUMBER" , "."
             stagestatus.Docker_BUILD = "Success"
           } catch (Exception err) {
             stagestatus.Docker_BUILD = "Failure"
@@ -42,7 +42,7 @@ pipeline {
         script {
           catchError (buildResult: 'SUCCESS', stageResult: 'FAILURE') {
             try {
-              docker.withRegistry( 'https://jfrog.it-academy.by/public/', registryCredential ) {
+              docker.withRegistry( 'https://jfrog.it-academy.by', registryCredential ) {
               dockerImage.push("${env.BUILD_ID}")
               }
               stagestatus.Docker_PUSH = "Success"
