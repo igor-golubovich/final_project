@@ -34,7 +34,7 @@ pipeline {
               stagestatus.Deploy_DB = "Success"
           }  catch (Exception err) {
                 stagestatus.Deploy_DB = "Failure"
-                error "Deploy or Upgrade BD failed"
+                error "BD Pod doesn't work"
               }
            }
         
