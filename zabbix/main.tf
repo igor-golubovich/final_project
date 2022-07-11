@@ -18,7 +18,7 @@ resource "aws_instance" "zabbix_server" {
   count                  = 1
   ami                    = data.aws_ami.ami_lat_ubuntu.id
   instance_type          = "t3.micro"
-  vpc_security_group_ids = [aws_security_group.allow_all.id]
+  vpc_security_group_ids = [aws_security_group.zabbix_sg.id]
   key_name               = "igoz-keys-stockholm"
   user_data              = file("user_data.sh")
   tags = {
@@ -28,9 +28,9 @@ resource "aws_instance" "zabbix_server" {
 
 
 
-resource "aws_security_group" "allow_all" {
+resource "aws_security_group" "zabbix_sg" {
   name        = "zabbix_sg"
-  description = "allow_all"
+  description = "zabbix_sg"
 
   dynamic "ingress" {
     for_each = ["22", "80", "443"]
