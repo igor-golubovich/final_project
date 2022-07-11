@@ -16,6 +16,7 @@ echo "create database zabbix character set utf8mb4 collate utf8mb4_bin;" > /tmp/
 echo "create user zabbix@localhost identified by 'password';" >> /tmp/create_zabbix.sql
 echo "grant all privileges on zabbix.* to zabbix@localhost;" >> /tmp/create_zabbix.sql
 echo "FLUSH PRIVILEGES;" >> /tmp/create_zabbix.sql
+sudo mysql -u root < /tmp/create_zabbix.sql
 
 zcat /usr/share/doc/zabbix-sql-scripts/mysql/server.sql.gz | mysql -u root -p zabbix
 
